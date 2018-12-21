@@ -18,27 +18,27 @@
 
     <el-dialog
       :visible.sync="dialogVisible"
-      title="设置时间间隔"
-      width="30%">
+      title="Setting Config"
+      width="40%">
       <el-time-picker
         v-model="countTime"
         :picker-options="{
           selectableRange: '00:01:00 - 23:59:59'
         }"
-        placeholder="任意时间点" />
+        placeholder="notification interval" />
 
       <el-input
         v-model="warningText"
         class="dialog-input"
-        placeholder="输入警告语..."/>
+        placeholder="notification text"/>
       <span
         slot="footer"
         class="dialog-footer">
         <el-button
-          @click="dialogVisible = false">取 消</el-button>
+          @click="dialogVisible = false">CANCEL</el-button>
         <el-button
           type="primary"
-          @click="submit">确 定</el-button>
+          @click="submit">SUBMIT</el-button>
       </span>
     </el-dialog>
   </div>
@@ -50,35 +50,35 @@ import { formatTime } from '../components/utils.js'
 export default {
   data () {
     return {
-      // 当前时间显示
+      // current time string
       timeStr: '',
-      // 倒计时显示字符串
+      // counting time string
       countStr: '00:00:00',
-      // 设置窗口是否可视
+      // setting's dialog visible
       dialogVisible: false,
-      // 默认倒计时（基于时间戳）
+      // default counting time picker value, base on timestamp.
       countTime: -28740000,
-      // 倒计时计数
+      // counting number(millisecond)
       counting: 0,
-      // 警告语
+      // nitification warning text
       warningText: '',
-      // 是否可以显示系统通知
+      // is allowed to notification
       isGranted: false,
-      // 计时器
+      // counting timmer
       timer: null,
-      // 是否开启倒计时
+      // counting opened
       opened: false
     }
   },
   watch: {
-    // 开启状态发生变化
+    // counting opened status change, start/stop to count
     opened (newVal) {
       clearTimeout(this.timer)
       if (newVal) {
         if (this.counting <= 0) {
           this.opened = false
           this.$message({
-            message: '需要先去设置一下时间噢！',
+            message: 'You need to set the notification interval first!',
             type: 'error'
           })
           return
@@ -88,7 +88,7 @@ export default {
     }
   },
   mounted () {
-    // 申请系统通知权限
+    // apply for notification
     Notification.requestPermission( (status) => {
       this.isGranted = (status === 'granted')
     })
@@ -97,9 +97,12 @@ export default {
     this.timing()
     this.counting = localStorage.getItem('time-to-rest-counting') ?
       parseInt(localStorage.getItem('time-to-rest-counting')) : 0
+    if (this.counting > 0) {
+      this.countStr = this.toHHMMSS(this.counting / 1000)
+    }
   },
   methods: {
-    // 当前时间更新
+    // update current time string
     timing () {
       let now = new Date()
       this.timeStr = formatTime(now)
@@ -107,14 +110,14 @@ export default {
         this.timing()
       })
     },
-    // 倒计时
+    // counting
     count () {
       this.countStr = this.toHHMMSS(this.counting / 1000)
       if (this.counting === 0) {
         if (this.isGranted) {
-          new Notification('Time to rest', {body: this.warningText || '到了休息的时候了，去运动一下吧~'})
+          new Notification('Time to rest', {body: this.warningText || 'It\'s time to rest!'})
         } else {
-          alert(this.warningText || '到了休息的时候了，去运动一下吧~')
+          alert(this.warningText || 'It\'s time to rest!')
         }
         this.opened = false
         return
@@ -124,7 +127,7 @@ export default {
         this.count()
       }, 1000)
     },
-    // 设置提交
+    // submit the setting
     submit () {
       this.dialogVisible = false
       this.counting = new Date(this.countTime).getTime() - new Date('1970 00:00:00').getTime()
@@ -133,12 +136,12 @@ export default {
         this.opened = true
       } else {
         this.$message({
-          message: '时间设置有误，请重试',
+          message: 'notification interval is wrong, try again!',
           type: 'error'
         })
       }
     },
-    // 转换毫秒数为HH:MM:SS格式
+    // stranslate the millisecond to HH:MM:SS string.
     toHHMMSS (sec_num) {
       let hours   = Math.floor(sec_num / 3600)
       let minutes = Math.floor((sec_num - (hours * 3600)) / 60)
