@@ -3,6 +3,13 @@ const pkg = require('./package')
 module.exports = {
   mode: 'universal',
 
+  /**
+   * router
+   */
+  router: {
+    base: '/time-to-rest/'
+  },
+
   /*
   ** Headers of the page
   */
@@ -54,7 +61,7 @@ module.exports = {
       // Run ESLint on save
       if (ctx.isDev && ctx.isClient) {
         config.module.rules.push({
-          // enforce: 'pre',
+          enforce: 'pre',
           test: /\.(js|vue)$/,
           loader: 'eslint-loader',
           exclude: /(node_modules)/
